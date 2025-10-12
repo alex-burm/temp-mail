@@ -2,7 +2,8 @@
 
 namespace App\Tests\Unit\Smtp\Service;
 
-use App\Smtp\Service\SpfChecker;
+use App\Smtp\Service\SpfChecker\SpfChecker;
+use App\Smtp\Service\SpfChecker\SpfResultStatus;
 use PHPUnit\Framework\TestCase;
 
 class SpfCheckerTest extends TestCase
@@ -17,7 +18,8 @@ class SpfCheckerTest extends TestCase
             ]);
 
         $result = $checker->check('192.168.1.1', 'example.com');
-        $this->assertTrue($result);
+        $this->assertEquals(SpfResultStatus::PASS, $result->status);
+        $this->assertEquals('IP 192.168.1.1 matches ip4:192.168.1.1 in SPF record', $result->message);
     }
 
     public function testCheckWithInvalidIp(): void
@@ -29,7 +31,8 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.1 ~all'],
             ]);
         $result = $checker->check('192.168.1.2', 'example.com');
-        $this->assertFalse($result);
+        $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
+        $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
 
     public function testCheckWithNoSpfRecord(): void
@@ -39,10 +42,9 @@ class SpfCheckerTest extends TestCase
             ->method('getDnsRecords')
             ->willReturn([]);
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('No SPF record found for example.com');
-
-        $checker->check('192.168.1.1', 'example.com');
+        $result = $checker->check('192.168.1.1', 'example.com');
+        $this->assertEquals(SpfResultStatus::NONE, $result->status);
+        $this->assertEquals('No SPF record found for example.com', $result->message);
     }
 
     public function testCheckWithDnsLookupFailure(): void
@@ -52,10 +54,9 @@ class SpfCheckerTest extends TestCase
             ->method('getDnsRecords')
             ->willReturn(false);
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('SPF TEMPERROR: DNS lookup failed for example.com');
-
-        $checker->check('192.168.1.1', 'example.com');
+        $result = $checker->check('192.168.1.1', 'example.com');
+        $this->assertEquals(SpfResultStatus::TEMPERROR, $result->status);
+        $this->assertEquals('DNS lookup failed for example.com', $result->message);
     }
 
     public function testCheckWithIncludeDirectiveMatching(): void
@@ -70,7 +71,8 @@ class SpfCheckerTest extends TestCase
             ]);
 
         $result = $checker->check('192.168.1.1', 'example.com');
-        $this->assertTrue($result);
+        $this->assertEquals(SpfResultStatus::PASS, $result->status);
+        $this->assertEquals('IP 192.168.1.1 authorized via include:spf.example.com', $result->message);
     }
 
     public function testCheckWithIncludeDirectiveNotMatching(): void
@@ -83,7 +85,8 @@ class SpfCheckerTest extends TestCase
                 ['spf.example.com', DNS_TXT, [['txt' => 'v=spf1 ip4:192.168.1.2 ~all']]]
             ]);
         $result = $checker->check('192.168.1.1', 'example.com');
-        $this->assertFalse($result);
+        $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
+        $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
 
     public function testCheckWithMultipleIp4Entries(): void
@@ -95,7 +98,8 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.1 ip4:192.168.1.2 ~all'],
             ]);
         $result = $checker->check('192.168.1.1', 'example.com');
-        $this->assertTrue($result);
+        $this->assertEquals(SpfResultStatus::PASS, $result->status);
+        $this->assertEquals('IP 192.168.1.1 matches ip4:192.168.1.1 in SPF record', $result->message);
     }
 
     public function testCheckWithNoMatchingIp(): void
@@ -107,7 +111,8 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.1 ip4:192.168.1.2 ~all'],
             ]);
         $result = $checker->check('192.168.1.3', 'example.com');
-        $this->assertFalse($result);
+        $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
+        $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
 
     public function testCheckWithCidrNotation(): void
@@ -119,7 +124,8 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.0/24 ~all'],
             ]);
         $result = $checker->check('192.168.1.100', 'example.com');
-        $this->assertTrue($result);
+        $this->assertEquals(SpfResultStatus::PASS, $result->status);
+        $this->assertEquals('IP 192.168.1.100 matches ip4:192.168.1.0/24 in SPF record', $result->message);
     }
 
     public function testCheckWithCidrNotationNoMatch(): void
@@ -131,7 +137,8 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.0/24 ~all'],
             ]);
         $result = $checker->check('192.168.2.100', 'example.com');
-        $this->assertFalse($result);
+        $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
+        $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
 
     public function testCheckWithMixedDirectives(): void
@@ -143,7 +150,8 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.1 include:spf2.example.com ~all'],
             ]);
         $result = $checker->check('192.168.1.1', 'example.com');
-        $this->assertTrue($result);
+        $this->assertEquals(SpfResultStatus::PASS, $result->status);
+        $this->assertEquals('IP 192.168.1.1 matches ip4:192.168.1.1 in SPF record', $result->message);
     }
 
     public function testCheckWithMaxDepthExceeded(): void
@@ -155,11 +163,9 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 include:spf2.example.com ~all'],
             ]);
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('SPF PERMERROR: too many DNS lookups');
-
-        // Вызываем проверку с глубиной больше лимита
-        $checker->check('192.168.1.1', 'example.com');
+        $result = $checker->check('192.168.1.1', 'example.com');
+        $this->assertEquals(SpfResultStatus::PERMERROR, $result->status);
+        $this->assertEquals('Too many DNS lookups', $result->message);
     }
 
     public function testCheckWithEmptySpfRecord(): void
@@ -171,7 +177,8 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ~all'],
             ]);
         $result = $checker->check('192.168.1.1', 'example.com');
-        $this->assertFalse($result);
+        $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
+        $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
 
     public function testCheckWithNeutralPolicy(): void
@@ -184,7 +191,8 @@ class SpfCheckerTest extends TestCase
             ]);
 
         $result = $checker->check('192.168.1.1', 'example.com');
-        $this->assertFalse($result, 'Neutral should not count as pass');
+        $this->assertEquals(SpfResultStatus::NEUTRAL, $result->status);
+        $this->assertEquals('SPF record is neutral (?all) for example.com', $result->message);
     }
 
     public function testCheckWithAllAllowed(): void
@@ -197,7 +205,8 @@ class SpfCheckerTest extends TestCase
             ]);
 
         $result = $checker->check('192.168.100.200', 'example.com');
-        $this->assertTrue($result);
+        $this->assertEquals(SpfResultStatus::PASS, $result->status);
+        $this->assertEquals('SPF record allows all (+all) for example.com', $result->message);
     }
 
     public function testCheckWithPassPolicy(): void
@@ -208,8 +217,10 @@ class SpfCheckerTest extends TestCase
             ->willReturn([
                 ['txt' => 'v=spf1 ip4:192.168.1.1 +all'],
             ]);
+
         $result = $checker->check('192.168.1.1', 'example.com');
-        $this->assertTrue($result);
+        $this->assertEquals(SpfResultStatus::PASS, $result->status);
+        $this->assertEquals('IP 192.168.1.1 matches ip4:192.168.1.1 in SPF record', $result->message);
     }
 
     public function testCheckWithInvalidSpfSyntax(): void
@@ -221,9 +232,9 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'spf1 ip4:192.168.1.1 -all'], // нет "v="
             ]);
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Invalid SPF record');
-        $checker->check('192.168.1.1', 'example.com');
+        $result = $checker->check('192.168.1.1', 'example.com');
+        $this->assertEquals(SpfResultStatus::PERMERROR, $result->status);
+        $this->assertEquals('Invalid SPF record for example.com', $result->message);
     }
 
     public function testCheckWithAllDenied(): void
@@ -234,7 +245,8 @@ class SpfCheckerTest extends TestCase
             ->willReturn([['txt' => 'v=spf1 -all']]);
 
         $result = $checker->check('192.168.1.1', 'example.com');
-        $this->assertFalse($result);
+        $this->assertEquals(SpfResultStatus::FAIL, $result->status);
+        $this->assertEquals('SPF record forbids this IP (-all) for example.com', $result->message);
     }
 
     public function testCheckWithMultipleSpfRecords(): void
@@ -247,15 +259,14 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.2 -all'],
             ]);
 
-        // НАДО ВЗЯТЬ ТОЛЬКО ПЕРВУЮ, НО ПОКАЗАТЬ ПОТОМ ОШИБКУ
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Multiple SPF records found');
-        $checker->check('192.168.1.1', 'example.com');
+        $result = $checker->check('192.168.1.1', 'example.com');
+        $this->assertEquals(SpfResultStatus::PERMERROR, $result->status);
+        $this->assertEquals('Multiple SPF records found for example.com', $result->message);
     }
 
     public function testCheckWithMultipleIncludeChain(): void
     {
-        $checker = new class extends \App\Smtp\Service\SpfChecker {
+        $checker = new class extends \App\Smtp\Service\SpfChecker\SpfChecker {
             protected function getDnsRecords(string $host, int $type): array|false
             {
                 return match ($host) {
@@ -267,12 +278,14 @@ class SpfCheckerTest extends TestCase
             }
         };
 
-        $this->assertTrue($checker->check('192.168.1.1', 'example.com'));
+        $result = $checker->check('192.168.1.1', 'example.com');
+        $this->assertEquals(SpfResultStatus::PASS, $result->status);
+        $this->assertEquals('IP 192.168.1.1 authorized via include:spf1.example.com', $result->message);
     }
 
     public function testCheckWithIncludeAllAllowed(): void
     {
-        $checker = new class extends \App\Smtp\Service\SpfChecker {
+        $checker = new class extends \App\Smtp\Service\SpfChecker\SpfChecker {
             protected function getDnsRecords(string $host, int $type): array|false
             {
                 return match ($host) {
@@ -283,12 +296,14 @@ class SpfCheckerTest extends TestCase
             }
         };
 
-        $this->assertTrue($checker->check('1.1.1.1', 'example.com'));
+        $result = $checker->check('1.1.1.1', 'example.com');
+        $this->assertEquals(SpfResultStatus::PASS, $result->status);
+        $this->assertEquals('IP 1.1.1.1 authorized via include:spf.example.com', $result->message);
     }
 
     public function testCheckWithCyclicInclude(): void
     {
-        $checker = new class extends \App\Smtp\Service\SpfChecker {
+        $checker = new class extends SpfChecker {
             protected function getDnsRecords(string $host, int $type): array|false
             {
                 return match ($host) {
@@ -299,9 +314,8 @@ class SpfCheckerTest extends TestCase
             }
         };
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('SPF PERMERROR: too many DNS lookups');
-
-        $checker->check('1.1.1.1', 'a.example.com');
+        $result = $checker->check('1.1.1.1', 'a.example.com');
+        $this->assertEquals(SpfResultStatus::PERMERROR, $result->status);
+        $this->assertEquals('Too many DNS lookups', $result->message);
     }
 }
