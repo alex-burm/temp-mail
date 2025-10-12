@@ -64,6 +64,17 @@ class SpfChecker
             }
         }
 
+        if (\preg_match_all('/ip6:([0-9a-fA-F\:\/]+)/', $spf, $m)) {
+            foreach ($m[1] as $cidr) {
+                if ($this->ip6InCidr($ip, $cidr)) {
+                    return new SpfResult(
+                        SpfResultStatus::PASS,
+                        \sprintf('IP %s matches ip6:%s in SPF record', $ip, $cidr)
+                    );
+                }
+            }
+        }
+
         if (\preg_match_all('/include:([^\s]+)/', $spf, $m)) {
             foreach ($m[1] as $inc) {
                 $result = $this->check($ip, $inc, $depth + 1);
@@ -128,5 +139,35 @@ class SpfChecker
         [$subnet, $mask] = \explode('/', $cidr);
         $mask = 0xffffffff << (32 - (int)$mask);
         return ((\ip2long($ip) & $mask) === (\ip2long($subnet) & $mask));
+    }
+
+    protected function ip6InCidr(string $ip, string $cidr): bool
+    {
+        if (false === \str_contains($cidr, '/')) {
+            return $ip === $cidr;
+        }
+
+        [$subnet, $mask] = \explode('/', $cidr);
+        $mask = (int)$mask;
+
+        $ipBinary = \inet_pton($ip);
+        $subnetBinary = \inet_pton($subnet);
+
+        if ($ipBinary === false || $subnetBinary === false) {
+            return false;
+        }
+
+        $bytes = \intval(($mask + 7) / 8);
+        $bits = $mask % 8;
+
+        for ($i = 0; $i < $bytes; $i++) {
+            $byte = \ord($subnetBinary[$i]) & (0xFF << (8 - $bits));
+            if (\ord($ipBinary[$i]) !== $byte) {
+                return false;
+            }
+            $bits = 8;
+        }
+
+        return true;
     }
 }
