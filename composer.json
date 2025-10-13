@@ -9,6 +9,8 @@
         "ext-iconv": "*",
         "ext-swoole": "*",
         "ext-pcntl": "*",
+        "ext-openssl": "*",
+        "ext-sodium": "*",
         "symfony/console": "7.3.*",
         "symfony/dotenv": "7.3.*",
         "symfony/event-dispatcher": "7.3.*",
