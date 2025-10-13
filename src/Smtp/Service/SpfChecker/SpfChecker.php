@@ -38,7 +38,7 @@ class SpfChecker
     private function resolveRecord(string $domain): string|SpfResult
     {
         $records = $this->getDnsRecords($domain, DNS_TXT);
-        if ($records === false) {
+        if (false === $records) {
             return $this->error(SpfResultStatus::TEMPERROR, \sprintf('DNS lookup failed for %s', $domain));
         }
 
@@ -136,7 +136,7 @@ class SpfChecker
 
         $ipBin = \inet_pton($ip);
         $subnetBin = \inet_pton($subnet);
-        if ($ipBin === false || $subnetBin === false) {
+        if (false === $ipBin || false === $subnetBin) {
             return false;
         }
 
