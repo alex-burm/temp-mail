@@ -1,0 +1,97 @@
+<?php
+
+namespace App\Smtp\Service\DmarcChecker;
+
+use App\Smtp\Service\DkimChecker\DkimResult;
+use App\Smtp\Service\DkimChecker\DkimResultStatus;
+use App\Smtp\Service\DnsResolver;
+use App\Smtp\Service\SpfChecker\SpfResult;
+use App\Smtp\Service\SpfChecker\SpfResultStatus;
+
+class DmarcChecker
+{
+    public function __construct(
+        public DnsResolver $dnsResolver,
+    ) {
+    }
+
+    public function check(string $domain, SpfResult $spf, DkimResult $dkim): DmarcResult
+    {
+        $record = $this->getDmarcRecord($domain);
+
+        if ($record === null) {
+            return new DmarcResult(DmarcResultStatus::NONE, 'No DMARC record found');
+        }
+
+        $params = $this->parseDmarcParams($record);
+        if (empty($params['v']) || strcasecmp($params['v'], 'DMARC1') !== 0) {
+            return new DmarcResult(DmarcResultStatus::NONE, 'Invalid DMARC version');
+        }
+
+        if (empty($params['p'])) {
+            return new DmarcResult(DmarcResultStatus::NONE, 'Missing required policy parameter');
+        }
+
+        $dkimAligned = $dkim->status === DkimResultStatus::PASS
+            && $this->isAligned($dkim->domain, $domain, $params['adkim'] ?? 'r');
+
+        $spfAligned = $spf->status === SpfResultStatus::PASS
+            && $this->isAligned($spf->domain, $domain, $params['aspf'] ?? 'r');
+
+        $passed = $dkimAligned || $spfAligned;
+
+        if ($passed) {
+            return new DmarcResult(DmarcResultStatus::PASS, 'DMARC passed');
+        }
+
+        $policy = $params['p'] ?? 'none';
+        return match ($policy) {
+            'reject' => new DmarcResult(DmarcResultStatus::REJECT, 'DMARC failed, message rejected'),
+            'quarantine' => new DmarcResult(DmarcResultStatus::QUARANTINE, 'DMARC failed, message quarantined'),
+            default => new DmarcResult(DmarcResultStatus::NONE, 'DMARC failed, but policy is none'),
+        };
+    }
+
+    private function getDmarcRecord(string $domain): ?string
+    {
+        $records = $this->dnsResolver->getRecords('_dmarc.' . $domain, DNS_TXT);
+
+        if (false === \is_array($records)) {
+            return null;
+        }
+
+        foreach ($records as $r) {
+            if (false === \array_key_exists('txt', $r)) {
+                continue;
+            }
+            return $r['txt'];
+        }
+
+        return null;
+    }
+
+    private function isAligned(string $sub, string $root, string $mode): bool
+    {
+        return 's' === $mode
+            ? \strcasecmp($sub, $root) === 0
+            : \str_ends_with($sub, '.' . $root) || \strcasecmp($sub, $root) === 0;
+    }
+
+    private function parseDmarcParams(string $record): array
+    {
+        $parts = \explode(';', $record);
+        $params = [];
+        foreach ($parts as $part) {
+            $part = \trim($part);
+            if ($part === '' || false === \str_contains($part, '=')) {
+                continue;
+            }
+
+            [$key, $value] = \array_map(\trim(...), \explode('=', $part, 2));
+            $params[$key] = $value;
+        }
+
+        return $params;
+    }
+}
+

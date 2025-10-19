@@ -6,6 +6,8 @@ readonly class SpfResult
 {
     public function __construct(
         public SpfResultStatus $status,
-        public ?string $message = null
-    ) {}
+        public ?string $message = null,
+        public ?string $domain = null,
+    ) {
+    }
 }
