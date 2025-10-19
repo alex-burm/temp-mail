@@ -4,11 +4,17 @@ namespace App\Smtp\Service\DmarcChecker;
 
 use App\Smtp\Service\DkimChecker\DkimResult;
 use App\Smtp\Service\DkimChecker\DkimResultStatus;
+use App\Smtp\Service\DnsResolver;
 use App\Smtp\Service\SpfChecker\SpfResult;
 use App\Smtp\Service\SpfChecker\SpfResultStatus;
 
 class DmarcChecker
 {
+    public function __construct(
+        public DnsResolver $dnsResolver,
+    ) {
+    }
+
     public function check(string $domain, SpfResult $spf, DkimResult $dkim): DmarcResult
     {
         $record = $this->getDmarcRecord($domain);
@@ -18,6 +24,13 @@ class DmarcChecker
         }
 
         $params = $this->parseDmarcParams($record);
+        if (empty($params['v']) || strcasecmp($params['v'], 'DMARC1') !== 0) {
+            return new DmarcResult(DmarcResultStatus::NONE, 'Invalid DMARC version');
+        }
+
+        if (empty($params['p'])) {
+            return new DmarcResult(DmarcResultStatus::NONE, 'Missing required policy parameter');
+        }
 
         $dkimAligned = $dkim->status === DkimResultStatus::PASS
             && $this->isAligned($dkim->domain, $domain, $params['adkim'] ?? 'r');
@@ -39,19 +52,20 @@ class DmarcChecker
         };
     }
 
-    protected function getDnsRecords(string $host, int $type): array|false
-    {
-        return \dns_get_record($host, $type);
-    }
-
     private function getDmarcRecord(string $domain): ?string
     {
-        $records = $this->getDnsRecords('_dmarc.' . $domain, DNS_TXT);
+        $records = $this->dnsResolver->getRecords('_dmarc.' . $domain, DNS_TXT);
+
+        if (false === \is_array($records)) {
+            return null;
+        }
+
         foreach ($records as $r) {
             if (isset($r['txt']) && \str_starts_with($r['txt'], 'v=DMARC1')) {
                 return $r['txt'];
             }
         }
+
         return null;
     }
 
