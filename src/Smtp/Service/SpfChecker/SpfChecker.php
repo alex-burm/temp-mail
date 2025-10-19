@@ -27,7 +27,7 @@ class SpfChecker
             return $includeResult;
         }
 
-        if (\preg_match('/([~\-\+\?])?all/', $spf, $m)) {
+        if (\preg_match('/([~\-+?])?all/', $spf, $m)) {
             $qualifier = $m[1] ?? '+';
             return $this->qualifierResult($qualifier, $domain);
         }
