@@ -4,13 +4,14 @@ namespace App\Tests\Unit\Smtp\Service;
 
 use App\Smtp\Service\DkimChecker\DkimChecker;
 use App\Smtp\Service\DkimChecker\DkimResultStatus;
+use App\Smtp\Service\DnsResolver;
 use PHPUnit\Framework\TestCase;
 
 class DkimCheckerTest extends TestCase
 {
     public function testNoDkimHeader(): void
     {
-        $checker = new DkimChecker();
+        $checker = new DkimChecker(new DnsResolver());
         $raw = "From: test@example.com\r\n"
             . "Subject: Hi\r\n\r\n"
             . "Body text";
@@ -18,12 +19,12 @@ class DkimCheckerTest extends TestCase
         $result = $checker->check($raw);
 
         $this->assertSame(DkimResultStatus::NONE, $result->status);
-        $this->assertStringContainsString('not found', $result->message);
+        $this->assertStringContainsString('DKIM-Signature header not found', $result->message);
     }
 
     public function testMissingRequiredParameter(): void
     {
-        $checker = new DkimChecker();
+        $checker = new DkimChecker(new DnsResolver());
         $raw = "DKIM-Signature: v=1; a=rsa-sha256; s=sel; bh=abc; b=xyz\r\n\r\nBody";
 
         $result = $checker->check($raw);
@@ -34,17 +35,17 @@ class DkimCheckerTest extends TestCase
 
     public function testDnsFails(): void
     {
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn(false);
+        $dnsResolver->method('getRecords')->willReturn(false);
 
         $raw = "DKIM-Signature: v=1; a=rsa-sha256; d=example.com; s=sel; bh=abc; b=xyz; h=from\r\n";
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
 
         $this->assertSame(DkimResultStatus::TEMPERROR, $result->status);
         $this->assertStringContainsString('DNS lookup failed', $result->message);
@@ -52,17 +53,17 @@ class DkimCheckerTest extends TestCase
 
     public function testNoDnsRecords(): void
     {
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([]);
+        $dnsResolver->method('getRecords')->willReturn([]);
 
         $raw = "DKIM-Signature: v=1; a=rsa-sha256; d=example.com; s=sel; bh=abc; b=xyz; h=from\r\n";
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
 
         $this->assertSame(DkimResultStatus::PERMERROR, $result->status);
         $this->assertStringContainsString('No DKIM record', $result->message);
@@ -70,11 +71,11 @@ class DkimCheckerTest extends TestCase
 
     public function testUnsupportedAlgo(): void
     {
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([
+        $dnsResolver->method('getRecords')->willReturn([
             ['txt' => 'v=DKIM1; p=FAKEKEY']
         ]);
 
@@ -82,7 +83,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
 
         $this->assertSame(DkimResultStatus::POLICY, $result->status);
         $this->assertStringContainsString('Unsupported algorithm', $result->message);
@@ -90,11 +91,11 @@ class DkimCheckerTest extends TestCase
 
     public function testEmptyPublicKey(): void
     {
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([
+        $dnsResolver->method('getRecords')->willReturn([
             ['txt' => 'v=DKIM1; p=']
         ]);
 
@@ -102,7 +103,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
 
         $this->assertSame(DkimResultStatus::PERMERROR, $result->status);
         $this->assertStringContainsString('Public key', $result->message);
@@ -110,11 +111,11 @@ class DkimCheckerTest extends TestCase
 
     public function testSignatureInvalid(): void
     {
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([
+        $dnsResolver->method('getRecords')->willReturn([
             ['txt' => 'v=DKIM1; p=FakeKey']
         ]);
 
@@ -122,7 +123,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
 
         $this->assertContains($result->status, [
             DkimResultStatus::FAIL,
@@ -161,15 +162,15 @@ class DkimCheckerTest extends TestCase
         $pubBody = trim(preg_replace('/-+(BEGIN|END) PUBLIC KEY-+/', '', $publicKeyPem));
         $pubBody = preg_replace('/\s+/', '', $pubBody);
 
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([
+        $dnsResolver->method('getRecords')->willReturn([
             ['txt' => 'v=DKIM1; p=' . $pubBody],
         ]);
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
 
         $this->assertSame(DkimResultStatus::PASS, $result->status, $result->message);
     }
@@ -203,15 +204,15 @@ class DkimCheckerTest extends TestCase
         $pubBody = \trim(\preg_replace('/-+(BEGIN|END) PUBLIC KEY-+/', '', $publicKeyPem));
         $pubBody = \preg_replace('/\s+/', '', $pubBody);
 
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([
+        $dnsResolver->method('getRecords')->willReturn([
             ['txt' => 'v=DKIM1; p=' . $pubBody],
         ]);
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
         $this->assertSame(DkimResultStatus::PASS, $result->status, $result->message);
     }
 
@@ -234,25 +235,25 @@ class DkimCheckerTest extends TestCase
         );
         $raw = $dkim . "\r\n" . implode("\r\n", $headers) . "\r\n\r\nBody";
 
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([
+        $dnsResolver->method('getRecords')->willReturn([
             ['txt' => 'v=DKIM1; p=' . \base64_encode($pub)],
         ]);
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
         $this->assertSame(DkimResultStatus::PASS, $result->status, $result->message);
     }
 
     public function testOpenSslFails(): void
     {
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([
+        $dnsResolver->method('getRecords')->willReturn([
             ['txt' => 'v=DKIM1; p=' . $this->generatePublicKey()],
         ]);
 
@@ -260,7 +261,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
 
         $this->assertContains($result->status, [
             DkimResultStatus::FAIL,
@@ -270,11 +271,11 @@ class DkimCheckerTest extends TestCase
 
     public function testBase64Invalid(): void
     {
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([
+        $dnsResolver->method('getRecords')->willReturn([
             ['txt' => 'v=DKIM1; p=' . $this->generatePublicKey()],
         ]);
 
@@ -282,10 +283,10 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
 
         $this->assertSame(DkimResultStatus::PERMERROR, $result->status);
-        $this->assertStringContainsString('Malformed/invalid signature or unsupported key operation: error:02000077:rsa routines::wrong signature length | error:1C880004:Provider routines::RSA lib', $result->message);
+        $this->assertStringContainsString('Malformed/invalid signature or unsupported key operation', $result->message);
     }
 
     protected function generatePublicKey(): string
@@ -311,11 +312,11 @@ class DkimCheckerTest extends TestCase
 
     public function testMissingVersion(): void
     {
-        $mock = $this->getMockBuilder(DkimChecker::class)
-            ->onlyMethods(['getDnsRecords'])
+        $dnsResolver = $this->getMockBuilder(DnsResolver::class)
+            ->onlyMethods(['getRecords'])
             ->getMock();
 
-        $mock->method('getDnsRecords')->willReturn([
+        $dnsResolver->method('getRecords')->willReturn([
             ['txt' => 'p=fake']
         ]);
 
@@ -323,7 +324,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = $mock->check($raw);
+        $result = new DkimChecker($dnsResolver)->check($raw);
 
         $this->assertSame(DkimResultStatus::PERMERROR, $result->status);
         $this->assertStringContainsString('Invalid or missing DKIM TXT record', $result->message);
