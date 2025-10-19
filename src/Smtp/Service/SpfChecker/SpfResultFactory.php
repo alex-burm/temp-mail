@@ -9,8 +9,8 @@ readonly class SpfResultFactory
     ) {
     }
 
-    public function make(string $status, string $message): SpfResult
+    public function make(SpfResultStatus $status, string $message): SpfResult
     {
-        return new SpfResult(SpfResultStatus::from($status), $message, $this->domain);
+        return new SpfResult($status, $message, $this->domain);
     }
 }
