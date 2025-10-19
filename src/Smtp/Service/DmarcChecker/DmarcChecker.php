@@ -61,9 +61,10 @@ class DmarcChecker
         }
 
         foreach ($records as $r) {
-            if (isset($r['txt']) && \str_starts_with($r['txt'], 'v=DMARC1')) {
-                return $r['txt'];
+            if (false === \array_key_exists('txt', $r)) {
+                continue;
             }
+            return $r['txt'];
         }
 
         return null;
@@ -81,11 +82,15 @@ class DmarcChecker
         $parts = \explode(';', $record);
         $params = [];
         foreach ($parts as $part) {
-            [$k, $v] = \array_map(\trim(...), \explode('=', $part) + [null, null]);
-            if ($k && $v) {
-                $params[$k] = $v;
+            $part = \trim($part);
+            if ($part === '' || false === \str_contains($part, '=')) {
+                continue;
             }
+
+            [$key, $value] = \array_map(\trim(...), \explode('=', $part, 2));
+            $params[$key] = $value;
         }
+
         return $params;
     }
 }
