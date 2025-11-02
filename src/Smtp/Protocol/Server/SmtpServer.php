@@ -39,7 +39,12 @@ class SmtpServer
     }
 
     public function onConnect(int $connectionId) {
-        $this->registry->attach($connectionId, new SmtpContext());
+        $info = $this->server->getClientInfo($connectionId);
+
+        $context = new SmtpContext();
+        $context->setIp($info['remote_ip']);
+
+        $this->registry->attach($connectionId, $context);
         $this->server->send($connectionId, SmtpResponse::ready('SMTP Ready'));
     }
 

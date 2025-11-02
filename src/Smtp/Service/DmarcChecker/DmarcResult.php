@@ -6,7 +6,7 @@ readonly class DmarcResult
 {
     public function __construct(
         public DmarcResultStatus $status,
-        public ?string $message = null)
-    {
+        public ?string $message = null,
+    ) {
     }
 }

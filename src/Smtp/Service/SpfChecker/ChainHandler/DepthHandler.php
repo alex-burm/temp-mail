@@ -14,7 +14,7 @@ final class DepthHandler extends AbstractSpfHandler
     public function handle(SpfContext $context): ?SpfResult
     {
         if ($context->depth > self::MAX_DNS_LOOKUPS) {
-            return new SpfResultFactory($context->domain)
+            return (new SpfResultFactory($context->domain))
                 ->make(SpfResultStatus::PERMERROR, 'Too many DNS lookups');
         }
         return $this->next($context);

@@ -11,7 +11,7 @@ final class NeutralFallbackHandler extends AbstractSpfHandler
 {
     public function handle(SpfContext $context): ?SpfResult
     {
-        return new SpfResultFactory($context->domain)->make(
+        return (new SpfResultFactory($context->domain))->make(
             SpfResultStatus::NEUTRAL,
             \sprintf('No matching rule found for IP %s in %s', $context->ip, $context->domain),
         );

@@ -45,7 +45,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
 
         $this->assertSame(DkimResultStatus::TEMPERROR, $result->status);
         $this->assertStringContainsString('DNS lookup failed', $result->message);
@@ -63,7 +63,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
 
         $this->assertSame(DkimResultStatus::PERMERROR, $result->status);
         $this->assertStringContainsString('No DKIM record', $result->message);
@@ -83,7 +83,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
 
         $this->assertSame(DkimResultStatus::POLICY, $result->status);
         $this->assertStringContainsString('Unsupported algorithm', $result->message);
@@ -103,7 +103,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
 
         $this->assertSame(DkimResultStatus::PERMERROR, $result->status);
         $this->assertStringContainsString('Public key', $result->message);
@@ -123,7 +123,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
 
         $this->assertContains($result->status, [
             DkimResultStatus::FAIL,
@@ -170,7 +170,7 @@ class DkimCheckerTest extends TestCase
             ['txt' => 'v=DKIM1; p=' . $pubBody],
         ]);
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
 
         $this->assertSame(DkimResultStatus::PASS, $result->status, $result->message);
     }
@@ -212,7 +212,7 @@ class DkimCheckerTest extends TestCase
             ['txt' => 'v=DKIM1; p=' . $pubBody],
         ]);
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
         $this->assertSame(DkimResultStatus::PASS, $result->status, $result->message);
     }
 
@@ -243,7 +243,7 @@ class DkimCheckerTest extends TestCase
             ['txt' => 'v=DKIM1; p=' . \base64_encode($pub)],
         ]);
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
         $this->assertSame(DkimResultStatus::PASS, $result->status, $result->message);
     }
 
@@ -261,7 +261,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
 
         $this->assertContains($result->status, [
             DkimResultStatus::FAIL,
@@ -283,7 +283,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
 
         $this->assertSame(DkimResultStatus::PERMERROR, $result->status);
         $this->assertStringContainsString('Malformed/invalid signature or unsupported key operation', $result->message);
@@ -324,7 +324,7 @@ class DkimCheckerTest extends TestCase
         $raw.= "From: test@example.com\r\n\r\n";
         $raw.= "Body";
 
-        $result = new DkimChecker($dnsResolver)->check($raw);
+        $result = (new DkimChecker($dnsResolver))->check($raw);
 
         $this->assertSame(DkimResultStatus::PERMERROR, $result->status);
         $this->assertStringContainsString('Invalid or missing DKIM TXT record', $result->message);

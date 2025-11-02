@@ -3,24 +3,30 @@
 namespace App\Smtp\Protocol\Command\Data;
 
 use App\Smtp\Command\SaveMail\Command;
-use App\Smtp\Command\SaveMail\SaveMailHandler;
 use App\Smtp\Protocol\Command\ProtocolCommand;
 use App\Smtp\Protocol\Context\SmtpContext;
 use App\Smtp\Protocol\Response\SmtpResponse;
 use App\Smtp\Protocol\State\SmtpState;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 final class EndCommand implements ProtocolCommand
 {
+    public function __construct(
+        protected MessageBusInterface $messageBus,
+    ) {
+    }
+
     public function execute(SmtpContext $context): ?SmtpResponse
     {
         if ($context->state !== SmtpState::DATA) {
             return new SmtpResponse(503, 'Bad sequence of commands');
         }
 
-        $handler = new SaveMailHandler();
-        $handler(new Command(
+        $this->messageBus->dispatch(new Command(
+            domain: $context->getHelo(),
+            ip: $context->getIp(),
             from: $context->getFrom(),
-            recipients: $context->getRecipients(),
+            recipient: \current($context->getRecipients()),
             data: $context->getData(),
         ));
 

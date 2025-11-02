@@ -8,10 +8,21 @@ class SmtpContext
 {
     public SmtpState $state = SmtpState::GREETING;
 
+    private ?string $ip = null;
     private ?string $helo = null;
     private ?string $from = null;
     private array $recipients = [];
     private string $data = '';
+
+    public function getIp(): ?string
+    {
+        return $this->ip;
+    }
+
+    public function setIp(string $ip): void
+    {
+        $this->ip = $ip;
+    }
 
     public function getHelo(): ?string
     {
