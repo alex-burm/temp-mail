@@ -1,0 +1,20 @@
+services:
+    localstack:
+        image: localstack/localstack:latest
+        ports:
+            - "16066:4566"
+        environment:
+            - SERVICES=sqs
+            - DEBUG=1
+            - AWS_DEFAULT_REGION=us-east-1
+        volumes:
+            - "./docker/localstack:/var/lib/localstack"
+    sqs-admin:
+      image: pacovk/sqs-admin:latest
+      ports:
+        - "16099:3999"
+      environment:
+        - SQS_ENDPOINT_URL=http://localstack:4566
+        - SQS_AWS_REGION=us-east-1
+      depends_on:
+        - localstack

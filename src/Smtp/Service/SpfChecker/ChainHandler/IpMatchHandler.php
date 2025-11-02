@@ -25,7 +25,7 @@ class IpMatchHandler extends AbstractSpfHandler
 
             foreach ($matches[1] as $cidr) {
                 if ($this->$method($context->ip, $cidr)) {
-                    return new SpfResultFactory($context->domain)->make(
+                    return (new SpfResultFactory($context->domain))->make(
                         SpfResultStatus::PASS,
                         \sprintf('IP %s matches %s:%s in SPF record', $context->ip, $mechanism, $cidr)
                     );

@@ -23,7 +23,7 @@ final class IncludeHandler extends AbstractSpfHandler
             }
 
             if ($result->status === SpfResultStatus::PASS) {
-                return new SpfResultFactory($domain)->make(
+                return (new SpfResultFactory($domain))->make(
                     SpfResultStatus::PASS,
                     \sprintf('IP %s authorized via include:%s', $context->ip, $domain)
                 );

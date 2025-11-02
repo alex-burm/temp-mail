@@ -19,8 +19,7 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.1 ~all'],
             ]);
 
-        $checker = new SpfChecker($dnsResolver);
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PASS, $result->status);
         $this->assertEquals('IP 192.168.1.1 matches ip4:192.168.1.1 in SPF record', $result->message);
     }
@@ -34,7 +33,7 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.1 ~all'],
             ]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.2', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.2', 'example.com');
         $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
         $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
@@ -46,7 +45,7 @@ class SpfCheckerTest extends TestCase
             ->method('getRecords')
             ->willReturn([]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::NONE, $result->status);
         $this->assertEquals('No SPF record found for example.com', $result->message);
     }
@@ -58,7 +57,7 @@ class SpfCheckerTest extends TestCase
             ->method('getRecords')
             ->willReturn(false);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::TEMPERROR, $result->status);
         $this->assertEquals('DNS lookup failed for example.com', $result->message);
     }
@@ -73,7 +72,7 @@ class SpfCheckerTest extends TestCase
                 ['spf.example.com', DNS_TXT, [['txt' => 'v=spf1 ip4:192.168.1.1 ~all']]]
             ]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PASS, $result->status);
         $this->assertEquals('IP 192.168.1.1 authorized via include:spf.example.com', $result->message);
     }
@@ -87,7 +86,7 @@ class SpfCheckerTest extends TestCase
                 ['example.com', DNS_TXT, [['txt' => 'v=spf1 include:spf.example.com ~all']]],
                 ['spf.example.com', DNS_TXT, [['txt' => 'v=spf1 ip4:192.168.1.2 ~all']]]
             ]);
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
         $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
@@ -100,7 +99,7 @@ class SpfCheckerTest extends TestCase
             ->willReturn([
                 ['txt' => 'v=spf1 ip4:192.168.1.1 ip4:192.168.1.2 ~all'],
             ]);
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PASS, $result->status);
         $this->assertEquals('IP 192.168.1.1 matches ip4:192.168.1.1 in SPF record', $result->message);
     }
@@ -113,7 +112,7 @@ class SpfCheckerTest extends TestCase
             ->willReturn([
                 ['txt' => 'v=spf1 ip4:192.168.1.1 ip4:192.168.1.2 ~all'],
             ]);
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.3', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.3', 'example.com');
         $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
         $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
@@ -126,7 +125,7 @@ class SpfCheckerTest extends TestCase
             ->willReturn([
                 ['txt' => 'v=spf1 ip4:192.168.1.0/24 ~all'],
             ]);
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.100', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.100', 'example.com');
         $this->assertEquals(SpfResultStatus::PASS, $result->status);
         $this->assertEquals('IP 192.168.1.100 matches ip4:192.168.1.0/24 in SPF record', $result->message);
     }
@@ -139,7 +138,7 @@ class SpfCheckerTest extends TestCase
             ->willReturn([
                 ['txt' => 'v=spf1 ip4:192.168.1.0/24 ~all'],
             ]);
-        $result = new SpfChecker($dnsResolver)->check('192.168.2.100', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.2.100', 'example.com');
         $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
         $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
@@ -152,7 +151,7 @@ class SpfCheckerTest extends TestCase
             ->willReturn([
                 ['txt' => 'v=spf1 ip4:192.168.1.1 include:spf2.example.com ~all'],
             ]);
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PASS, $result->status);
         $this->assertEquals('IP 192.168.1.1 matches ip4:192.168.1.1 in SPF record', $result->message);
     }
@@ -166,7 +165,7 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 include:spf2.example.com ~all'],
             ]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PERMERROR, $result->status);
         $this->assertEquals('Too many DNS lookups', $result->message);
     }
@@ -179,7 +178,7 @@ class SpfCheckerTest extends TestCase
             ->willReturn([
                 ['txt' => 'v=spf1 ~all'],
             ]);
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::SOFTFAIL, $result->status);
         $this->assertEquals('SPF record soft-fails (~all) for example.com', $result->message);
     }
@@ -193,7 +192,7 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ?all'],
             ]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::NEUTRAL, $result->status);
         $this->assertEquals('SPF record is neutral (?all) for example.com', $result->message);
     }
@@ -207,7 +206,7 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 +all'],
             ]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.100.200', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.100.200', 'example.com');
         $this->assertEquals(SpfResultStatus::PASS, $result->status);
         $this->assertEquals('SPF record allows all (+all) for example.com', $result->message);
     }
@@ -221,7 +220,7 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.1 +all'],
             ]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PASS, $result->status);
         $this->assertEquals('IP 192.168.1.1 matches ip4:192.168.1.1 in SPF record', $result->message);
     }
@@ -235,7 +234,7 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'spf1 ip4:192.168.1.1 -all'],
             ]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PERMERROR, $result->status);
         $this->assertEquals('Invalid SPF record for example.com', $result->message);
     }
@@ -247,7 +246,7 @@ class SpfCheckerTest extends TestCase
             ->method('getRecords')
             ->willReturn([['txt' => 'v=spf1 -all']]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::FAIL, $result->status);
         $this->assertEquals('SPF record forbids this IP (-all) for example.com', $result->message);
     }
@@ -262,7 +261,7 @@ class SpfCheckerTest extends TestCase
                 ['txt' => 'v=spf1 ip4:192.168.1.2 -all'],
             ]);
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PERMERROR, $result->status);
         $this->assertEquals('Multiple SPF records found for example.com', $result->message);
     }
@@ -281,7 +280,7 @@ class SpfCheckerTest extends TestCase
             }
         };
 
-        $result = new SpfChecker($dnsResolver)->check('192.168.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('192.168.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PASS, $result->status);
         $this->assertEquals('IP 192.168.1.1 authorized via include:spf1.example.com', $result->message);
     }
@@ -299,7 +298,7 @@ class SpfCheckerTest extends TestCase
             }
         };
 
-        $result = new SpfChecker($dnsResolver)->check('1.1.1.1', 'example.com');
+        $result = (new SpfChecker($dnsResolver))->check('1.1.1.1', 'example.com');
         $this->assertEquals(SpfResultStatus::PASS, $result->status);
         $this->assertEquals('IP 1.1.1.1 authorized via include:spf.example.com', $result->message);
     }
@@ -317,7 +316,7 @@ class SpfCheckerTest extends TestCase
             }
         };
 
-        $result = new SpfChecker($dnsResolver)->check('1.1.1.1', 'a.example.com');
+        $result = (new SpfChecker($dnsResolver))->check('1.1.1.1', 'a.example.com');
         $this->assertEquals(SpfResultStatus::PERMERROR, $result->status);
         $this->assertEquals('Too many DNS lookups', $result->message);
     }

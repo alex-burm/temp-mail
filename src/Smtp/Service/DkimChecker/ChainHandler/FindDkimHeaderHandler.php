@@ -19,7 +19,7 @@ final class FindDkimHeaderHandler extends AbstractDkimHandler
             }
         }
 
-        return new DkimResultFactory($context->domain)->make(
+        return (new DkimResultFactory($context->domain))->make(
             DkimResultStatus::NONE,
             'DKIM-Signature header not found'
         );
