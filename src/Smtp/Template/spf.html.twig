@@ -1,0 +1,117 @@
+{% extends 'layout/base.html.twig' %}
+
+{% block body %}
+    <main class="main">
+        <section class="checker-section">
+            <div class="checker-card">
+                <h2>Проверить SPF запись</h2>
+                <p class="checker-description">
+                    SPF (Sender Policy Framework) - это механизм аутентификации электронной почты, который позволяет владельцам доменов указывать, какие почтовые серверы имеют право отправлять письма от их имени.
+                </p>
+
+                <div class="checker-form">
+                    <div class="form-group">
+                        <label for="domainInput">Введите доменное имя:</label>
+                        <input
+                            type="text"
+                            id="domainInput"
+                            class="checker-input"
+                            placeholder="example.com"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <button class="checker-btn" id="checkBtn">
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">Проверить SPF</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="results-section" id="resultsSection" style="display: none;">
+            <div class="results-card">
+                <div class="results-header">
+                    <h2>Результаты проверки</h2>
+                    <div class="status-badge" id="statusBadge">Проверка...</div>
+                </div>
+
+                <div class="results-content">
+                    <div class="result-item">
+                        <div class="result-label">Домен:</div>
+                        <div class="result-value" id="resultDomain">-</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">SPF запись:</div>
+                        <div class="result-value code-block" id="resultRecord">-</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Статус:</div>
+                        <div class="result-value" id="resultStatus">-</div>
+                    </div>
+
+                    <div class="result-details" id="resultDetails"></div>
+
+                    <div class="info-box">
+                        <h3>Анализ записи</h3>
+                        <div id="analysisContent">Ожидание результатов...</div>
+                    </div>
+
+                    <div class="info-box" id="warningsBox" style="display: none;">
+                        <h3>Предупреждения</h3>
+                        <ul id="warningsList"></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <div class="info-card">
+                <h2>О SPF записях</h2>
+                <div class="info-content">
+                    <h3>Что такое SPF?</h3>
+                    <p>
+                        SPF (Sender Policy Framework) - это стандарт аутентификации электронной почты, который помогает предотвратить спуфинг (подделку) адресов отправителей. SPF позволяет владельцам доменов публиковать список авторизованных почтовых серверов.
+                    </p>
+
+                    <h3>Зачем нужна SPF запись?</h3>
+                    <ul>
+                        <li>Защита от спама и фишинга</li>
+                        <li>Повышение доставляемости писем</li>
+                        <li>Подтверждение легитимности отправителя</li>
+                        <li>Защита репутации домена</li>
+                    </ul>
+
+                    <h3>Пример SPF записи:</h3>
+                    <div class="code-example">
+                        v=spf1 include:_spf.google.com ~all
+                    </div>
+
+                    <h3>Основные механизмы:</h3>
+                    <ul>
+                        <li><strong>v=spf1</strong> - версия протокола</li>
+                        <li><strong>include:</strong> - включить SPF запись другого домена</li>
+                        <li><strong>ip4:</strong> - разрешить IPv4 адрес</li>
+                        <li><strong>ip6:</strong> - разрешить IPv6 адрес</li>
+                        <li><strong>a</strong> - разрешить A запись домена</li>
+                        <li><strong>mx</strong> - разрешить MX записи домена</li>
+                        <li><strong>all</strong> - правило для всех остальных адресов</li>
+                    </ul>
+
+                    <h3>Квалификаторы:</h3>
+                    <ul>
+                        <li><strong>+</strong> (Pass) - разрешить</li>
+                        <li><strong>-</strong> (Fail) - запретить</li>
+                        <li><strong>~</strong> (SoftFail) - мягкий запрет</li>
+                        <li><strong>?</strong> (Neutral) - нейтральный</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/checker.css') }}">
+{% endblock %}

@@ -58,4 +58,35 @@ class EmailMessage
     {
         $this->createdAt = new \DateTimeImmutable;
     }
+
+    private function getHeaders(): array
+    {
+        static $headers = null;
+
+        if (false === \is_null($headers)) {
+            return $headers;
+        }
+        $headersString = \preg_split("/\r?\n\r?\n/", $this->data ?? '', 1)[0];
+        foreach (\preg_split("/\r?\n/", \trim($headersString)) as $line) {
+            if (\preg_match('/^([^:]+):\s*(.+)$/', $line, $m)) {
+                $headers[\strtolower(\trim($m[1]))] = \trim($m[2]);
+            }
+        }
+        return $headers;
+    }
+
+    public function getFrom(): ?string
+    {
+        return $this->getHeaders()['from'] ?? null;
+    }
+
+    public function getSubject(): ?string
+    {
+        return $this->getHeaders()['subject'] ?? null;
+    }
+
+    public function getMessage(): ?string
+    {
+        return $this->html ?? $this->text;
+    }
 }

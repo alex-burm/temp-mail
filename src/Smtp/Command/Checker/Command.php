@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Smtp\Command\Checked;
+namespace App\Smtp\Command\Checker;
 
 use Symfony\Component\Messenger\Attribute\AsMessage;
 use Symfony\Component\Uid\Uuid;
 
 #[AsMessage('async')]
-final class Command
+final readonly class Command
 {
     public function __construct(
-        public readonly Uuid $id,
-        public readonly string $domain,
-        public readonly string $ip,
+        public Uuid $id,
+        public string $domain,
+        public string $ip,
     ) {}
 }

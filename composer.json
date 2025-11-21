@@ -16,6 +16,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.5",
         "doctrine/orm": "^3.5.3",
         "symfony/amazon-sqs-messenger": "7.3.*",
+        "symfony/asset": "7.3.*",
         "symfony/console": "7.3.*",
         "symfony/doctrine-messenger": "7.3.*",
         "symfony/dotenv": "7.3.*",
@@ -26,8 +27,13 @@
         "symfony/mime": "7.3.*",
         "symfony/runtime": "7.3.*",
         "symfony/serializer": "7.3.*",
+        "symfony/twig-bundle": "7.3.*",
         "symfony/uid": "7.3.*",
-        "symfony/yaml": "7.3.*"
+        "symfony/ux-live-component": "^2.31",
+        "symfony/ux-twig-component": "^2.31",
+        "symfony/yaml": "7.3.*",
+        "twig/extra-bundle": "^3.22",
+        "twig/intl-extra": "^3.22"
     },
     "config": {
         "allow-plugins": {

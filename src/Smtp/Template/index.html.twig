@@ -1,0 +1,9 @@
+{% extends 'layout/base.html.twig' %}
+
+{% block body %}
+    <main class="main">
+        {{ component('EmailAddress') }}
+        {{ component('MessageList', { id: app.request.query.get('id') }) }}
+        {{ component('MessageView', { id: app.request.query.get('id') }) }}
+    </main>
+{% endblock %}

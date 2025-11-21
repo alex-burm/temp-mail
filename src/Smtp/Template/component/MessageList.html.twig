@@ -1,0 +1,40 @@
+<section class="inbox-section" style="display: {{ id is empty ? 'block' : 'none' }};" {{ attributes.defaults(stimulus_controller('MessageList')) }}>
+    <div class="inbox-header">
+        <h2>Inbox</h2>
+        <div class="inbox-controls">
+            <button class="refresh-inbox-btn" data-action="click->MessageList#refresh">
+                <span>🔄</span>
+                Refresh
+            </button>
+            <div class="email-counter" id="emailCounter">{{ messages|length}} messages</div>
+        </div>
+    </div>
+
+    <div class="email-list">
+        {% if messages is empty %}
+            <div class="no-emails">
+                <div class="no-emails-icon">📭</div>
+                <p>No messages yet</p>
+                <small>Email your temporary address and it will appear here</small>
+            </div>
+        {% else %}
+            {% for item in messages %}
+            <div class="email-item unread" data-action="click->MessageList#open" data-id="{{ item.id }}">
+                <div class="email-header">
+                    <div>
+                        <div class="email-sender">{{ item.from }}</div>
+                        <div class="email-subject">{{ item.subject }}</div>
+                        <div class="email-preview">{{ item.message|split("\n").0 }}</div>
+                    </div>
+                    <div class="email-meta">
+                        <div class="email-time">{{ item.createdAt|format_datetime(pattern="H:m, dd MMM YYYY") }}</div>
+    {#                        <div class="email-badge">new</div>#}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <script src="{{ asset('assets/js/controller/MessageList.js') }}"></script>
+</section>

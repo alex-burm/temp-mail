@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+
+        <link rel="stylesheet" href="{{ asset('assets/style.css') }}">
+
+        {% block stylesheets %}
+        {% endblock %}
+
+        <script src="{{ asset('assets/js/stimulus.umd.js') }}"></script>
+        <script src="{{ asset('assets/js/live.umd.js') }}"></script>
+        <script src="{{ asset('assets/js/app.js') }}"></script>
+    </head>
+    <body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="nav-logo">📧</span>
+                <span class="nav-title">TempMail</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{{ path('home') }}" class="nav-link {{ app.request.attributes.get('_route') == 'home' ? 'active' }}">📥 Inbox</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ path('spf-checker') }}" class="nav-link {{ app.request.attributes.get('_route') == 'spf-checker' ? 'active' }}">🛡️ SPF Checker</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ path('dmarc-checker') }}" class="nav-link {{ app.request.attributes.get('_route') == 'dmarc-checker' ? 'active' }}">🔒 DMARC Checker</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ path('dkim-checker') }}" class="nav-link {{ app.request.attributes.get('_route') == 'dkim-checker' ? 'active' }}">🔑 DKIM Checker</a>
+                </li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% block body %}{% endblock %}
+    </div>
+
+    <script src="{{ asset('assets/js/main.js') }}"></script>
+    {% block javascripts %}
+    {% endblock %}
+    </body>
+</html>
