@@ -7,7 +7,7 @@ use App\Smtp\Repository\EmailMessageRepository;
 use App\Smtp\Service\DataParser;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
-use App\Smtp\Command\Checked;
+use App\Smtp\Command\Checker;
 
 #[AsMessageHandler]
 final class Handler
@@ -37,7 +37,7 @@ final class Handler
         $message->text = $this->getContentBody($contents, 'text/plain');
         $this->repository->save($message);
 
-        $this->messageBus->dispatch(new Checked\Command(
+        $this->messageBus->dispatch(new Checker\Command(
             id: $message->id,
             domain: $cmd->domain,
             ip: $cmd->ip,

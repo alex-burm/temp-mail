@@ -1,5 +1,5 @@
-#controllers:
-#    resource:
-#        path: ../src/Controller/
-#        namespace: App\Controller
-#    type: attribute
+smtp:
+    resource:
+        path: ../src/Smtp/Controller/
+        namespace: App\Smtp\Controller
+    type: attribute

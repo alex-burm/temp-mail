@@ -1,0 +1,146 @@
+{% extends 'layout/base.html.twig' %}
+
+{% block body %}
+    <main class="main">
+        <section class="checker-section">
+            <div class="checker-card">
+                <h2>Check DKIM record</h2>
+                <p class="checker-description">
+                    DKIM (DomainKeys Identified Mail) is an email authentication method that uses cryptographic
+                    signatures to verify the sender's identity and the integrity of the message.
+                </p>
+
+                <form class="checker-form">
+                    <div class="form-group">
+                        <label for="domain">Enter the domain name:</label>
+                        <input
+                            type="text"
+                            id="domain"
+                            class="checker-input"
+                            placeholder="example.com"
+                            autocomplete="off"
+                            name="domain"
+                            value="{{ app.request.query.get('domain') }}"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="selector">Введите DKIM селектор (необязательно):</label>
+                        <input
+                            type="text"
+                            class="checker-input"
+                            placeholder="default"
+                            autocomplete="off"
+                            id="selector"
+                            name="selector"
+                            value="{{ app.request.query.get('selector') }}"
+                        >
+                        <small class="form-hint">Normal selectors: default, google, k1, s1, dkim</small>
+                    </div>
+                    <button class="checker-btn" id="checkBtn">
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">Check DKIM</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        {% if isValid %}
+            <section class="results-section">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h2>Check results</h2>
+                        {% if record is empty %}
+                            <div class="status-badge error">Error</div>
+                        {% else %}
+                            <div class="status-badge success">OK</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="results-content">
+                        <div class="result-item">
+                            <div class="result-label">Domain:</div>
+                            <div class="result-value">{{ app.request.query.get('domain') }}</div>
+                        </div>
+
+                        <div class="result-item">
+                            <div class="result-label">Selector:</div>
+                            <div class="result-value">{{ app.request.query.get('selector')|default('default') }}</div>
+                        </div>
+
+                        <div class="result-item">
+                            <div class="result-label">DKIM record:</div>
+                            <div class="result-value code-block">{{ record|default('-') }}</div>
+                        </div>
+
+                        <div class="result-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Key type:</span>
+                                <span class="detail-value">{{ data.key_type }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Key length:</span>
+                                <span class="detail-value">{{ data.key_bits }} bit</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+
+        <section class="info-section">
+            <div class="info-card">
+                About DKIM records
+                <div class="info-content">
+                    <h3>What is DKIM?</h3>
+                    <p>
+                        DKIM (DomainKeys Identified Mail) is an email authentication method that allows the recipient to
+                        verify that the email was actually sent by an authorized domain server and was not modified in
+                        transit.
+                    </p>
+
+                    <h3>How does DKIM work?</h3>
+                    <ul>
+                        <li>The sending server adds a digital signature to the email headers.</li>
+                        <li>The signature is created using a private key.</li>
+                        <li>The public key is published in the DNS record.</li>
+                        <li>The receiving server verifies the signature using the public key.</li>
+                    </ul>
+
+                    <h3>Example DKIM record:</h3>
+                    <div class="code-example">
+                        v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC...
+                    </div>
+
+                    <h3>Main parameters:</h3>
+                    <ul>
+                        <li><strong>v=</strong> - protocol version (DKIM1)</li>
+                        <li><strong>k=</strong> - key type (rsa, ed25519)</li>
+                        <li><strong>p=</strong> - public key in Base64 format</li>
+                        <li><strong>t=</strong> - flags (s - strict mode, y - test mode)</li>
+                        <li><strong>h=</strong> - allowed hashing algorithms</li>
+                    </ul>
+
+                    <h3>DKIM benefits:</h3>
+                    <ul>
+                        <li>Sender authentication</li>
+                        <li>Protection against email content modification</li>
+                        <li>Improved deliverability</li>
+                        <li>Improved domain reputation</li>
+                    </ul>
+
+                    <h3>Common selectors:</h3>
+                    <ul>
+                        <li><strong>default</strong> - standard selector</li>
+                        <li><strong>google</strong> - used by Google</li>
+                        <li><strong>k1, s1</strong> - often used by email providers</li>
+                        <li><strong>dkim</strong> - general selector</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/checker.css') }}">
+{% endblock %}

@@ -1,0 +1,9 @@
+twig:
+    file_name_pattern: '*.twig'
+    default_path: '%kernel.project_dir%/src/Shared/Template'
+    paths:
+        '%kernel.project_dir%/src/Smtp/Template': 'smtp'
+
+when@test:
+    twig:
+        strict_variables: true

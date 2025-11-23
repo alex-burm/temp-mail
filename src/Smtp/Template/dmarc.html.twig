@@ -1,0 +1,149 @@
+{% extends 'layout/base.html.twig' %}
+
+{% block body %}
+    <main class="main">
+        <section class="checker-section">
+            <div class="checker-card">
+                <h2>Check DMARC record</h2>
+                <p class="checker-description">
+                    DMARC (Domain-based Message Authentication, Reporting, and Conformance) is an email authentication
+                    protocol that uses SPF and DKIM to protect against phishing and spoofing.
+                </p>
+
+                <form class="checker-form">
+                    <div class="form-group">
+                        <label for="domain">Enter the domain name:</label>
+                        <input
+                            type="text"
+                            id="domain"
+                            class="checker-input"
+                            placeholder="example.com"
+                            autocomplete="off"
+                            name="domain"
+                            value="{{ app.request.query.get('domain') }}"
+                        >
+                    </div>
+                    <button class="checker-btn" id="checkBtn">
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">Check DMARC</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        {% if isValid %}
+            <section class="results-section">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h2>Check results</h2>
+                        {% if record is empty %}
+                            <div class="status-badge error">Error</div>
+                        {% else %}
+                            <div class="status-badge success">OK</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="results-content">
+                        <div class="result-item">
+                            <div class="result-label">Domain:</div>
+                            <div class="result-value">{{ app.request.query.get('domain') }}</div>
+                        </div>
+
+                        <div class="result-item">
+                            <div class="result-label">DMARC record:</div>
+                            <div class="result-value code-block">{{ record|default('-') }}</div>
+                        </div>
+
+                        <div class="result-details" id="resultDetails">
+                            <div class="detail-row">
+                                <span class="detail-label">Policy:</span>
+                                <span class="detail-value">{{ data.policy }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Subdomain Policy:</span>
+                                <span class="detail-value">{{ data.subdomain_policy }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Percentage of application:</span>
+                                <span class="detail-value">{{ data.percent }}%</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">DKIM alignment:</span>
+                                <span class="detail-value">{{ data.adkim }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">SPF Alignment:</span>
+                                <span class="detail-value">{{ data.aspf }}</span>
+                            </div>
+
+                            {% if data.rua %}
+                                <div class="detail-row">
+                                    <span class="detail-label">Reports are sent to:</span>
+                                    <span class="detail-value">{{ data.rua }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+        <section class="info-section">
+            <div class="info-card">
+                <h2>About DMARC Records</h2>
+                <div class="info-content">
+                    <h3>What is DMARC?</h3>
+                    <p>
+                        DMARC (Domain-based Message Authentication, Reporting, and Conformance) is an email
+                        authentication standard that builds on top of SPF and DKIM. It allows domain owners to specify
+                        what to do with emails that fail authentication checks.
+                    </p>
+
+                    <h3>Why do I need a DMARC record?</h3>
+                    <ul>
+                        <li>Protecting against phishing and domain spoofing</li>
+                        <li>Controlling your domain usage</li>
+                        <li>Receiving reports on spoofing attempts</li>
+                        <li>Increasing the trust in your emails</li>
+                    </ul>
+
+                    <h3>Example of a DMARC record:</h3>
+                    <div class="code-example">
+                        v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com; pct=100
+                    </div>
+
+                    <h3>Main parameters:</h3>
+                    <ul>
+                        <li><strong>v=</strong> - protocol version (DMARC1)</li>
+                        <li><strong>p=</strong> - policy (none, quarantine, reject)</li>
+                        <li><strong>rua=</strong> - address for aggregate reports</li>
+                        <li><strong>ruf=</strong> - address for forensic reports</li>
+                        <li><strong>pct=</strong> - percentage of emails to apply the policy to (0-100)</li>
+                        <li><strong>sp=</strong> - policy for subdomains</li>
+                        <li><strong>adkim=</strong> - DKIM alignment mode (r - relaxed, s - strict)</li>
+                        <li><strong>aspf=</strong> - SPF alignment mode (r - relaxed, s - strict)</li>
+                    </ul>
+
+                    <h3>DMARC Policies:</h3>
+                    <ul>
+                        <li><strong>none</strong> - monitoring, emails are delivered as usual</li>
+                        <li><strong>quarantine</strong> - suspicious emails are marked as spam</li>
+                        <li><strong>reject</strong> - suspicious emails are rejected</li>
+                    </ul>
+
+                    <h3>Implementation Recommendations:</h3>
+                    <ol>
+                        <li>Start with the p=none policy for monitoring</li>
+                        <li>Configure reporting (rua and ruf)</li>
+                        <li>Analyze reports for several weeks</li>
+                        <li>Gradually transition to p=quarantine</li>
+                        <li>After testing, implement p=reject</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/checker.css') }}">
+{% endblock %}

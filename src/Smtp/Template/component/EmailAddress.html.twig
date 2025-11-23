@@ -1,0 +1,32 @@
+<section class="email-section" {{ attributes.defaults(stimulus_controller('EmailAddress')) }}>
+    <div class="email-card">
+        <h2>Your temporary email address:</h2>
+        <div class="email-display">
+            <div class="email-input-wrapper">
+                <input type="text" value="{{ email }}" readonly class="email-input"
+                       data-EmailAddress-target="email"
+                >
+                <div class="input-glow"></div>
+            </div>
+            <button class="action-btn" data-EmailAddress-target="copy">
+                <span class="btn-icon">📋</span>
+                <span class="btn-text">Copy</span>
+            </button>
+            <button class="action-btn refresh-btn"
+                {{ stimulus_action('live', 'action', 'click', { action: 'refresh' }) }}
+            >
+                <span class="btn-icon">🔄</span>
+                <span class="btn-text">Refresh</span>
+            </button>
+        </div>
+        {#
+        <div class="email-status">
+            <div class="status-indicator active"></div>
+            <span class="status-text">Active - waiting for email</span>
+            <div class="status-timer">Time left: 09:47</div>
+        </div>
+        #}
+    </div>
+
+    <script src="{{ asset('assets/js/controller/EmailAddress.js') }}"></script>
+</section>

@@ -2,7 +2,6 @@
 
 namespace App\Smtp\Command\Checker;
 
-use App\Smtp\Command\Checked\Command;
 use App\Smtp\Entity\EmailMessage;
 use App\Smtp\Repository\EmailMessageRepository;
 use App\Smtp\Service\DataParser;

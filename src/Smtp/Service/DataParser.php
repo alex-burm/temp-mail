@@ -4,12 +4,6 @@ namespace App\Smtp\Service;
 
 class DataParser
 {
-    /**
-     * Парсит EMAIL из SMTP DATA команды
-     *
-     * @param string $data Сырой текст email из DATA команды
-     * @return array ['headers' => array, 'contents' => array]
-     */
     public function parse(string $data): array
     {
         // to fix RFC 5321

@@ -1,0 +1,49 @@
+<section class="email-view-section" style="display: {{ message is empty ? 'none' : 'block' }};" {{ attributes.defaults(stimulus_controller('MessageView')) }}>
+    <div class="email-view-header">
+        <button class="back-btn" data-action="click->MessageView#back">
+            <span>←</span>
+            Back to list
+        </button>
+        {#
+        <div class="email-actions">
+            <button class="action-btn danger">🗑️ Delete</button>
+        </div>
+        #}
+    </div>
+
+    <div class="email-view-content">
+        <div class="email-view-meta">
+            <h2>{{ message.subject|default('') }}</h2>
+            <div class="meta-grid">
+                <div class="meta-row">
+                    <span class="meta-label">From:</span>
+                    <span class="meta-value">{{ message.from|default('n/a') }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Date:</span>
+                    <span class="meta-value">{{ message.createdAt|default('')|format_datetime(pattern="H:m, dd MMM YYYY") }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="email-view-tabs">
+            <button class="tab-btn active" data-tab="content">📄 Content</button>
+            <button class="tab-btn" data-tab="source">🔍 Sources</button>
+        </div>
+
+        <div class="tab-content active" data-tab="content">
+            <iframe
+                srcdoc="{{ message.html|default(message.text|default('')|nl2br)|raw }}"
+                sandbox=""
+                class="email-content-view"
+                onload="updateSizeIframe(this)"
+            ></iframe>
+        </div>
+
+        <div class="tab-content" data-tab="source">
+            <pre class="email-source-view">{{ message.data|default('') }}</pre>
+        </div>
+    </div>
+
+    <script src="{{ asset('assets/js/controller/MessageView.js') }}"></script>
+</section>

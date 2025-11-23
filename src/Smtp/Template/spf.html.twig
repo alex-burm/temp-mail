@@ -1,0 +1,138 @@
+{% extends 'layout/base.html.twig' %}
+
+{% block body %}
+    <main class="main">
+        <section class="checker-section">
+            <div class="checker-card">
+                <h2>Check SPF record</h2>
+                <p class="checker-description">
+                    SPF (Sender Policy Framework) is an email authentication mechanism that allows domain owners to
+                    specify which mail servers are authorized to send emails on their behalf.
+                </p>
+
+                <form class="checker-form">
+                    <div class="form-group">
+                        <label for="domain">Enter the domain name:</label>
+                        <input
+                            type="text"
+                            id="domain"
+                            class="checker-input"
+                            placeholder="example.com"
+                            autocomplete="off"
+                            name="domain"
+                            value="{{ app.request.query.get('domain') }}"
+                        >
+                    </div>
+                    <button class="checker-btn">
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">Check SPF</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        {% if isValid %}
+            <section class="results-section">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h2>Check results</h2>
+                        {% if record is empty %}
+                            <div class="status-badge error">Error</div>
+                        {% else %}
+                            <div class="status-badge success">OK</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="results-content">
+                        <div class="result-item">
+                            <div class="result-label">Domain:</div>
+                            <div class="result-value">{{ app.request.query.get('domain') }}</div>
+                        </div>
+
+                        <div class="result-item">
+                            <div class="result-label">SPF record:</div>
+                            <div class="result-value code-block">{{ record|default('-') }}</div>
+                        </div>
+
+                        {% if result is not empty %}
+                        <div class="mechanisms-section">
+                            <h3>SPF mechanisms</h3>
+                            <div class="table-wrapper">
+                                <table class="mechanisms-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Qualifier</th>
+                                        <th>Type</th>
+                                        <th>Value</th>
+                                        <th>Description</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for row in result %}
+                                        <tr>
+                                            <td><span class="qualifier-badge {{ row.prefix == '+' ? 'qualifier-pass' : 'qualifier-softfail' }}">{{ row.prefix }}</span></td>
+                                            <td>{{ row.type }}</td>
+                                            <td>{{ row.value }}</td>
+                                            <td>{{ row.description }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+
+        <section class="info-section">
+            <div class="info-card">
+                <h2>About SPF records</h2>
+                <div class="info-content">
+                    <h3>What is SPF?</h3>
+                    <p>
+                        SPF (Sender Policy Framework) is an email authentication standard that helps prevent sender
+                        address spoofing. SPF allows domain owners to publish a list of authorized mail servers.
+                    </p>
+
+                    <h3>Why do you need an SPF record?</h3>
+                    <ul>
+                        <li>Spam and phishing protection</li>
+                        <li>Improving email deliverability</li>
+                        <li>Sender legitimacy verification</li>
+                        <li>Domain reputation protection</li>
+                    </ul>
+
+                    <h3>SPF record example:</h3>
+                    <div class="code-example">
+                        v=spf1 include:_spf.google.com ~all
+                    </div>
+
+                    <h3>Basic mechanisms:</h3>
+                    <ul>
+                        <li><strong>v=spf1</strong> - protocol version</li>
+                        <li><strong>include:</strong> - include another domain's SPF record</li>
+                        <li><strong>ip4:</strong> - allow IPv4 address</li>
+                        <li><strong>ip6:</strong> - allow IPv6 address</li>
+                        <li><strong>a</strong> - allow domain's A record</li>
+                        <li><strong>mx</strong> - allow domain's MX record</li>
+                        <li><strong>all</strong> - rule for all other addresses</li>
+                    </ul>
+
+                    <h3>Qualifiers:</h3>
+                    <ul>
+                        <li><strong>+</strong> (Pass) - allow</li>
+                        <li><strong>-</strong> (Fail) - deny</li>
+                        <li><strong>~</strong> (SoftFail) - soft prohibition</li>
+                        <li><strong>?</strong> (Neutral) - neutral</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/checker.css') }}">
+{% endblock %}
