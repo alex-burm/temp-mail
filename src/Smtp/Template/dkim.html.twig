@@ -4,129 +4,136 @@
     <main class="main">
         <section class="checker-section">
             <div class="checker-card">
-                <h2>Проверить DKIM запись</h2>
+                <h2>Check DKIM record</h2>
                 <p class="checker-description">
-                    DKIM (DomainKeys Identified Mail) - это метод аутентификации электронной почты, который использует криптографические подписи для подтверждения подлинности отправителя и целостности сообщения.
+                    DKIM (DomainKeys Identified Mail) is an email authentication method that uses cryptographic
+                    signatures to verify the sender's identity and the integrity of the message.
                 </p>
 
-                <div class="checker-form">
+                <form class="checker-form">
                     <div class="form-group">
-                        <label for="domainInput">Введите доменное имя:</label>
+                        <label for="domain">Enter the domain name:</label>
                         <input
                             type="text"
-                            id="domainInput"
+                            id="domain"
                             class="checker-input"
                             placeholder="example.com"
                             autocomplete="off"
+                            name="domain"
+                            value="{{ app.request.query.get('domain') }}"
                         >
                     </div>
                     <div class="form-group">
-                        <label for="selectorInput">Введите DKIM селектор (необязательно):</label>
+                        <label for="selector">Введите DKIM селектор (необязательно):</label>
                         <input
                             type="text"
-                            id="selectorInput"
                             class="checker-input"
                             placeholder="default"
                             autocomplete="off"
+                            id="selector"
+                            name="selector"
+                            value="{{ app.request.query.get('selector') }}"
                         >
-                        <small class="form-hint">Обычные селекторы: default, google, k1, s1, dkim</small>
+                        <small class="form-hint">Normal selectors: default, google, k1, s1, dkim</small>
                     </div>
                     <button class="checker-btn" id="checkBtn">
                         <span class="btn-icon">🔍</span>
-                        <span class="btn-text">Проверить DKIM</span>
+                        <span class="btn-text">Check DKIM</span>
                     </button>
-                </div>
+                </form>
             </div>
         </section>
 
-        <section class="results-section" id="resultsSection" style="display: none;">
-            <div class="results-card">
-                <div class="results-header">
-                    <h2>Результаты проверки</h2>
-                    <div class="status-badge" id="statusBadge">Проверка...</div>
+        {% if isValid %}
+            <section class="results-section">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h2>Check results</h2>
+                        {% if record is empty %}
+                            <div class="status-badge error">Error</div>
+                        {% else %}
+                            <div class="status-badge success">OK</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="results-content">
+                        <div class="result-item">
+                            <div class="result-label">Domain:</div>
+                            <div class="result-value">{{ app.request.query.get('domain') }}</div>
+                        </div>
+
+                        <div class="result-item">
+                            <div class="result-label">Selector:</div>
+                            <div class="result-value">{{ app.request.query.get('selector')|default('default') }}</div>
+                        </div>
+
+                        <div class="result-item">
+                            <div class="result-label">DKIM record:</div>
+                            <div class="result-value code-block">{{ record|default('-') }}</div>
+                        </div>
+
+                        <div class="result-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Key type:</span>
+                                <span class="detail-value">{{ data.key_type }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Key length:</span>
+                                <span class="detail-value">{{ data.key_bits }} bit</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <div class="results-content">
-                    <div class="result-item">
-                        <div class="result-label">Домен:</div>
-                        <div class="result-value" id="resultDomain">-</div>
-                    </div>
-
-                    <div class="result-item">
-                        <div class="result-label">Селектор:</div>
-                        <div class="result-value" id="resultSelector">-</div>
-                    </div>
-
-                    <div class="result-item">
-                        <div class="result-label">DKIM запись:</div>
-                        <div class="result-value code-block" id="resultRecord">-</div>
-                    </div>
-
-                    <div class="result-item">
-                        <div class="result-label">Статус:</div>
-                        <div class="result-value" id="resultStatus">-</div>
-                    </div>
-
-                    <div class="result-details" id="resultDetails"></div>
-
-                    <div class="info-box">
-                        <h3>Анализ записи</h3>
-                        <div id="analysisContent">Ожидание результатов...</div>
-                    </div>
-
-                    <div class="info-box" id="warningsBox" style="display: none;">
-                        <h3>Предупреждения</h3>
-                        <ul id="warningsList"></ul>
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
+        {% endif %}
 
         <section class="info-section">
             <div class="info-card">
-                <h2>О DKIM записях</h2>
+                About DKIM records
                 <div class="info-content">
-                    <h3>Что такое DKIM?</h3>
+                    <h3>What is DKIM?</h3>
                     <p>
-                        DKIM (DomainKeys Identified Mail) - это метод аутентификации электронной почты, который позволяет получателю проверить, что письмо действительно было отправлено авторизованным сервером домена и не было изменено при передаче.
+                        DKIM (DomainKeys Identified Mail) is an email authentication method that allows the recipient to
+                        verify that the email was actually sent by an authorized domain server and was not modified in
+                        transit.
                     </p>
 
-                    <h3>Как работает DKIM?</h3>
+                    <h3>How does DKIM work?</h3>
                     <ul>
-                        <li>Отправляющий сервер добавляет цифровую подпись к заголовкам письма</li>
-                        <li>Подпись создается с использованием приватного ключа</li>
-                        <li>Публичный ключ публикуется в DNS записи</li>
-                        <li>Получающий сервер проверяет подпись с помощью публичного ключа</li>
+                        <li>The sending server adds a digital signature to the email headers.</li>
+                        <li>The signature is created using a private key.</li>
+                        <li>The public key is published in the DNS record.</li>
+                        <li>The receiving server verifies the signature using the public key.</li>
                     </ul>
 
-                    <h3>Пример DKIM записи:</h3>
+                    <h3>Example DKIM record:</h3>
                     <div class="code-example">
                         v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC...
                     </div>
 
-                    <h3>Основные параметры:</h3>
+                    <h3>Main parameters:</h3>
                     <ul>
-                        <li><strong>v=</strong> - версия протокола (DKIM1)</li>
-                        <li><strong>k=</strong> - тип ключа (rsa, ed25519)</li>
-                        <li><strong>p=</strong> - публичный ключ в формате Base64</li>
-                        <li><strong>t=</strong> - флаги (s - строгий режим, y - тестовый режим)</li>
-                        <li><strong>h=</strong> - допустимые алгоритмы хеширования</li>
+                        <li><strong>v=</strong> - protocol version (DKIM1)</li>
+                        <li><strong>k=</strong> - key type (rsa, ed25519)</li>
+                        <li><strong>p=</strong> - public key in Base64 format</li>
+                        <li><strong>t=</strong> - flags (s - strict mode, y - test mode)</li>
+                        <li><strong>h=</strong> - allowed hashing algorithms</li>
                     </ul>
 
-                    <h3>Преимущества DKIM:</h3>
+                    <h3>DKIM benefits:</h3>
                     <ul>
-                        <li>Подтверждение подлинности отправителя</li>
-                        <li>Защита от изменения содержимого письма</li>
-                        <li>Повышение доставляемости</li>
-                        <li>Улучшение репутации домена</li>
+                        <li>Sender authentication</li>
+                        <li>Protection against email content modification</li>
+                        <li>Improved deliverability</li>
+                        <li>Improved domain reputation</li>
                     </ul>
 
-                    <h3>Распространенные селекторы:</h3>
+                    <h3>Common selectors:</h3>
                     <ul>
-                        <li><strong>default</strong> - стандартный селектор</li>
-                        <li><strong>google</strong> - используется Google</li>
-                        <li><strong>k1, s1</strong> - часто используются почтовыми провайдерами</li>
-                        <li><strong>dkim</strong> - общий селектор</li>
+                        <li><strong>default</strong> - standard selector</li>
+                        <li><strong>google</strong> - used by Google</li>
+                        <li><strong>k1, s1</strong> - often used by email providers</li>
+                        <li><strong>dkim</strong> - general selector</li>
                     </ul>
                 </div>
             </div>

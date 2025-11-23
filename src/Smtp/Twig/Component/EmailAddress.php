@@ -2,7 +2,7 @@
 
 namespace App\Smtp\Twig\Component;
 
-use App\Smtp\Command\GenerateEmailAddress;
+use App\Smtp\Command\CreateMailbox;
 use Symfony\Component\Messenger\HandleTrait;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -30,6 +30,6 @@ class EmailAddress
 
     private function generateEmail(): string
     {
-        return $this->handle(new GenerateEmailAddress\Command());
+        return $this->handle(new CreateMailbox\Command());
     }
 }

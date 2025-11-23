@@ -19,7 +19,7 @@ final class EmailMessageRepository extends AbstractRepository
         $this->getEntityManager()->flush();
     }
 
-    public function findById(Uuid $id): EmailMessage
+    public function findById(Uuid $id): ?EmailMessage
     {
         return $this->find($id);
     }

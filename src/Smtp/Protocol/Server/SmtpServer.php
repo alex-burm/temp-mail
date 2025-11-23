@@ -3,7 +3,6 @@
 namespace App\Smtp\Protocol\Server;
 
 use App\Smtp\Protocol\Context\SmtpContext;
-use App\Smtp\Protocol\Parser\SmtpCommandResolver;
 use App\Smtp\Protocol\Response\SmtpResponse;
 use Swoole\Process;
 use Swoole\Server;
@@ -13,9 +12,8 @@ class SmtpServer
     private Server $server;
 
     public function __construct(
-        private SmtpCommandResolver    $resolver,
         private SmtpConnectionRegistry $registry,
-        private SmtpRequestHandler     $handler,
+        private SmtpRequestHandler $handler,
     ) {
     }
 
