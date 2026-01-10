@@ -50,8 +50,7 @@ if (!expectCode($greeting, 220)) {
 
 $clientHost = gethostname() ?: 'localhost';
 $mailFrom = 'alice@example.com';
-$rcptTo = 'bob@example.com';
-
+$rcptTo = $argv[2] ?? 'bob@example.com';
 sendLine($fp, "HELO {$clientHost}");
 $resp = readResponse($fp);
 foreach ($resp as $l) echo "S: $l\n";

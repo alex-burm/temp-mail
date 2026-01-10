@@ -13,5 +13,5 @@
 /phpunit.xml
 /.phpunit.cache/
 ###< phpunit/phpunit ###
-docker/*
+data/*
 node_modules
