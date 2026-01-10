@@ -4,8 +4,11 @@ namespace App\Smtp\Protocol\Server;
 
 use App\Smtp\Protocol\Context\SmtpContext;
 use App\Smtp\Protocol\Response\SmtpResponse;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Swoole\Process;
 use Swoole\Server;
+use Swoole\Timer;
 
 class SmtpServer
 {
@@ -14,12 +17,22 @@ class SmtpServer
     public function __construct(
         private SmtpConnectionRegistry $registry,
         private SmtpRequestHandler $handler,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
     public function start(string $host, int $port): void
     {
         $this->server = new Server($host, $port);
+
+        Timer::tick(5000, function () {
+            $connection = $this->entityManager->getConnection();
+            $connection->executeQuery($connection->getDatabasePlatform()->getDummySelectSQL());
+            //echo '[' . date('Y-m-d H:i:s') . '] Ping 5 sec' . "\n";
+
+            $this->entityManager->clear();
+            \gc_collect_cycles();
+        });
 
         $this->server->on('start', fn () => $this->onStart());
         $this->server->on('connect', fn (Server $s, int $cid) => $this->onConnect($cid));

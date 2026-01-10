@@ -2346,16 +2346,16 @@
         },
         {
             "name": "symfony/doctrine-messenger",
-            "version": "v7.3.4",
+            "version": "v7.3.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/doctrine-messenger.git",
-                "reference": "064159484ab330590b7b477f6c8835812f2e340f"
+                "reference": "ed215e61df79c1e504b2790ebdf68a6110a5e526"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/doctrine-messenger/zipball/064159484ab330590b7b477f6c8835812f2e340f",
-                "reference": "064159484ab330590b7b477f6c8835812f2e340f",
+                "url": "https://api.github.com/repos/symfony/doctrine-messenger/zipball/ed215e61df79c1e504b2790ebdf68a6110a5e526",
+                "reference": "ed215e61df79c1e504b2790ebdf68a6110a5e526",
                 "shasum": ""
             },
             "require": {
@@ -2398,7 +2398,7 @@
             "description": "Symfony Doctrine Messenger Bridge",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/doctrine-messenger/tree/v7.3.4"
+                "source": "https://github.com/symfony/doctrine-messenger/tree/v7.3.9"
             },
             "funding": [
                 {
@@ -2418,7 +2418,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-09-11T10:12:26+00:00"
+            "time": "2025-12-16T07:50:38+00:00"
         },
         {
             "name": "symfony/dotenv",
@@ -4679,16 +4679,16 @@
         },
         {
             "name": "symfony/serializer",
-            "version": "v7.3.5",
+            "version": "v7.3.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/serializer.git",
-                "reference": "ba2e50a5f2870c93f0f47ca1a4e56e4bbe274035"
+                "reference": "e6769b126ea7f9668beea94f68fbaf4ed88772f6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/serializer/zipball/ba2e50a5f2870c93f0f47ca1a4e56e4bbe274035",
-                "reference": "ba2e50a5f2870c93f0f47ca1a4e56e4bbe274035",
+                "url": "https://api.github.com/repos/symfony/serializer/zipball/e6769b126ea7f9668beea94f68fbaf4ed88772f6",
+                "reference": "e6769b126ea7f9668beea94f68fbaf4ed88772f6",
                 "shasum": ""
             },
             "require": {
@@ -4758,7 +4758,7 @@
             "description": "Handles serializing and deserializing data structures, including object graphs, into array structures or other formats like XML and JSON.",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/serializer/tree/v7.3.5"
+                "source": "https://github.com/symfony/serializer/tree/v7.3.9"
             },
             "funding": [
                 {
@@ -4778,7 +4778,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-10-08T11:26:21+00:00"
+            "time": "2025-12-23T14:45:27+00:00"
         },
         {
             "name": "symfony/service-contracts",
